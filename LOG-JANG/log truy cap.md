@@ -1,7 +1,8 @@
 ## Log request `--cpu`
 
-- Request URL: /api/userdata/user.css. Response 404.
-- Request URL: /api/users. Response 200:
+### 1. Request URL: /api/userdata/user.css. Response 404.
+
+### 2. Request URL: /api/users. Response 200:
 
 ```json
 {
@@ -10,8 +11,9 @@
 }
 ```
 
-- Request URL: /api/i18n. Response 200: {}
-- Request URL: /api/system_stats. Response 200:
+### 3. Request URL: /api/i18n. Response 200: {}
+
+### 4. Request URL: /api/system_stats. Response 200:
 
 ```json
 {
@@ -40,7 +42,7 @@
 }
 ```
 
-- Request URL: /api/settings. Response 200:
+### 5. Request URL: /api/settings. Response 200:
 
 ```json
 {
@@ -52,8 +54,9 @@
 }
 ```
 
-- Request URL: /api/userdata.
-  Query params:
+### 6. Request URL: /api/userdata.
+
+Query params:
 
 ```
 Raw query string: dir=workflows&recurse=true&split=false&full_info=true
@@ -65,7 +68,7 @@ full_info: true
 
 Response 200: []
 
-- Request URL: /api/extensions. Status: 200 OK:
+### 7.Request URL: /api/extensions. Status: 200 OK:
 
 ```json
 [
@@ -90,7 +93,7 @@ Response 200: []
 ]
 ```
 
-- Request URL: /api/object_info. Status: 200 OK
+### 8. Request URL: /api/object_info. Status: 200 OK
 
 ```json
 {
@@ -27682,8 +27685,9 @@ Response 200: []
 }
 ```
 
-- Request URL: /api/userdata/comfy.templates.json. Status: 404 Not Found
-- Request URL: /api/experiment/models. Status: 200 OK
+### 9. Request URL: /api/userdata/comfy.templates.json. Status: 404 Not Found
+
+### 10. Request URL: /api/experiment/models. Status: 200 OK
 
 ```json
 [
@@ -27774,9 +27778,11 @@ Response 200: []
 ]
 ```
 
-### phần lặp lại mỗi phút. hay 1 khoảng thời gian nào đó k tương tác.
+### Phần lặp lại promt, queue, history.
 
-- Request URL: /api/prompt. Status: 200 OK
+Được xác định khi kết nối với server k tốt.
+
+#### Request URL: /api/prompt. Status: 200 OK
 
 ```json
 {
@@ -27786,7 +27792,7 @@ Response 200: []
 }
 ```
 
-- Request URL: /api/queue. Status: 200 OK
+#### Request URL: /api/queue. Status: 200 OK
 
 ```json
 {
@@ -27795,9 +27801,16 @@ Response 200: []
 }
 ```
 
-- Request URL: /api/history. Status: 200 OK: {}
+#### Request URL: /api/history.
 
-### khi nhận RUN mà không có Checkpoint:
+```
+Raw query string: max_items=64
+max_items: 64
+```
+
+Status: 200 OK: {}
+
+### Khi nhận RUN mà không có Checkpoint:
 
 Log tại CLI Core:
 
@@ -27810,7 +27823,8 @@ Output will be ignored
 invalid prompt: {'type': 'prompt_outputs_failed_validation', 'message': 'Prompt outputs failed validation', 'details': '', 'extra_info': {}}
 ```
 
-lệnh **POST** được gửi đi: Request URL: /api/prompt
+#### Lệnh **POST** được gửi đi: Request URL: `/api/prompt`
+
 header 19 mục(nhiều nhất trong cách lệnh gửi):
 
 ```
@@ -28171,7 +28185,8 @@ User-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 }
 ```
 
-Status: 400 Bad Request:
+#### Status: 400 Bad Request:
+
 header:
 
 ```
@@ -28219,4 +28234,45 @@ Server: Python/3.12 aiohttp/3.12.15
 }
 ```
 
-- Request URL: /internal/log. Status: 200 OK. "TEXT LOG QUÁ TRÌNH TRẢ LỜI CỦA SERVER"
+### Request URL: /internal/log. Status: 200 OK. "TEXT LOG QUÁ TRÌNH TRẢ LỜI CỦA SERVER"
+
+### Sau khi kết với server bằng HTTP API:
+
+liên tục gửi `/ws`, nếu không nhận được sẽ bị lỗi:
+
+```bash
+ ERROR  8:04:44 PM [vite] ws proxy socket error:
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20) (x9)
+```
+
+### Server Disconect Error:
+
+```bash
+ ERROR  7:54:59 PM [vite] http proxy error: /api/prompt
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+
+```
+
+```bash
+ ERROR  7:54:59 PM [vite] http proxy error: /api/queue
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+```
+
+```bash
+ERROR  7:54:59 PM [vite] http proxy error: /api/history?max_items=64
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+```
+
+```bash
+ERROR  7:55:02 PM [vite] ws proxy error:
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+```

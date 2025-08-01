@@ -292,11 +292,18 @@ export class ComfyApi extends EventTarget {
 
   constructor() {
     super()
-    this.user = ''
+    this.user = 'Jang'
     this.api_host = location.host
     this.api_base = location.pathname.split('/').slice(0, -1).join('/')
-    console.log('Running on', this.api_host)
     this.initialClientId = sessionStorage.getItem('clientId')
+    console.log(
+      'Running on api_host',
+      this.api_host,
+      'api_base',
+      this.api_base,
+      'initialClientId',
+      this.initialClientId
+    )
   }
 
   internalURL(route: string): string {
@@ -329,6 +336,14 @@ export class ComfyApi extends EventTarget {
     } else {
       options.headers['Comfy-User'] = this.user
     }
+    console.log(
+      'Route:',
+      route,
+      'with user: ',
+      this.user,
+      'option bao gồm headers: ',
+      options
+    )
     return fetch(this.apiURL(route), options)
   }
 
@@ -369,6 +384,7 @@ export class ComfyApi extends EventTarget {
       detail === undefined
         ? new CustomEvent(type)
         : new CustomEvent(type, { detail })
+    console.log('gọi phương thức dispatchCustomEvent với event: ', event)
     return super.dispatchEvent(event)
   }
 
@@ -381,10 +397,17 @@ export class ComfyApi extends EventTarget {
    * Poll status  for colab and other things that don't support websockets.
    */
   #pollQueue() {
+    console.warn(
+      "Gọi pollQueue() với interval 1s, gọi this.fetchApi('/prompt')"
+    )
     setInterval(async () => {
       try {
         const resp = await this.fetchApi('/prompt')
         const status = (await resp.json()) as StatusWsMessageStatus
+        console.log(
+          'status bên trong pollQueue(), sau khi gọi this.fetchApi /prompt',
+          status
+        )
         this.dispatchCustomEvent('status', status)
       } catch (error) {
         this.dispatchCustomEvent('status', null)
@@ -428,6 +451,7 @@ export class ComfyApi extends EventTarget {
     })
 
     this.socket.addEventListener('error', () => {
+      console.log("this.socket.addEventListener('error'")
       if (this.socket) this.socket.close()
       if (!isReconnect && !opened) {
         this.#pollQueue()
@@ -577,7 +601,7 @@ export class ComfyApi extends EventTarget {
   }
 
   /**
-   * Gets a list of extension urls
+   * Gets a list of extension urls "api/extensions"
    */
   async getExtensions(): Promise<ExtensionsResponse> {
     const resp = await this.fetchApi('/extensions', { cache: 'no-store' })
@@ -585,7 +609,7 @@ export class ComfyApi extends EventTarget {
   }
 
   /**
-   * Gets the available workflow templates from custom nodes.
+   * Gets the available workflow templates from custom nodes. '/api/workflow_templates'
    * @returns A map of custom_node names and associated template workflow names.
    */
   async getWorkflowTemplates(): Promise<{
@@ -596,7 +620,7 @@ export class ComfyApi extends EventTarget {
   }
 
   /**
-   * Gets the index of core workflow templates.
+   * Gets the index of core workflow templates. '/templates/index.json'
    */
   async getCoreWorkflowTemplates(): Promise<WorkflowTemplates[]> {
     const res = await axios.get(this.fileURL('/templates/index.json'))
@@ -605,7 +629,7 @@ export class ComfyApi extends EventTarget {
   }
 
   /**
-   * Gets a list of embedding names
+   * Gets a list of embedding names '/api/embeddings'
    */
   async getEmbeddings(): Promise<EmbeddingsResponse> {
     const resp = await this.fetchApi('/embeddings', { cache: 'no-store' })
@@ -613,7 +637,7 @@ export class ComfyApi extends EventTarget {
   }
 
   /**
-   * Loads node object definitions for the graph
+   * Loads node object definitions for the graph "/api/object_info"
    * @returns The node definitions
    */
   async getNodeDefs(): Promise<Record<string, ComfyNodeDef>> {
