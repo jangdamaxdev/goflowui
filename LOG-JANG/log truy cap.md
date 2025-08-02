@@ -1,5 +1,40 @@
-## Log request `--cpu`
-
+  Log request `--cpu`
+## Cấu hình chạy Vue
+### npm run dev (mặc định) và SETUP .ENV
+Để `DEV_SERVER_COMFYUI_URL=http://localhost:8188`
+Sau khi load vào địa chỉ do Vite đưa ra là: `http://localhost:5173`
+Phía Core Backend có log CLI:
+`Feature flags negotiated for client 616993e5479941a5a4a6fa59f5af68a8: {'supports_preview_metadata': True}`
+Phía CLient instance của class ComfyApi là `api` có giá trị:
+```json
+{
+  "api_host": "localhost:5173",
+  "api_base": "",
+  "initialClientId": "616993e5479941a5a4a6fa59f5af68a8",
+  "user": "Jang",
+  "socket": null,
+  "reportedUnknownMessageTypes": {},
+  "serverFeatureFlags": {}
+}
+```
+Dù thay đổi `DEV_SERVER_COMFYUI_URL` sang `Mockoon port 9999` nhưng luôn là `"api_host": "localhost:5173"`
+Nên Các lệnh gọi `fetchApi` đều dùng `this.api_host = location.host`. 
+Trong khi location có giá trị như sau:
+```json
+{
+  "ancestorOrigins": {},
+  "href": "http://localhost:5173/",
+  "origin": "http://localhost:5173",
+  "protocol": "http:",
+  "host": "localhost:5173",
+  "hostname": "localhost",
+  "port": "5173",
+  "pathname": "/",
+  "search": "",
+  "hash": ""
+}
+```
+## Quy trình load ban đầu
 ### 1. Request URL: /api/userdata/user.css. Response 404.
 
 ### 2. Request URL: /api/users. Response 200:
@@ -27778,6 +27813,7 @@ Response 200: []
 ]
 ```
 
+## Thao tác
 ### Phần lặp lại promt, queue, history.
 
 Được xác định khi kết nối với server k tốt.

@@ -41,6 +41,11 @@ export const useUserStore = defineStore('user', () => {
    */
   async function initialize() {
     userConfig.value = await api.getUserConfig()
+
+    //     userConfig.value =  {
+    //   "storage": "server",
+    //   "migrated": true
+    // } // Dùng fake cấu hình này vào được bên trong. Nhưng load chưa load được plugin. Có lẽ cần thêm object_info
     currentUserId.value = localStorage['Comfy.userId']
   }
 

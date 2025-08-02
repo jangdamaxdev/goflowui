@@ -185,3 +185,100 @@ import ComfyApiWorkflow
 }>, ZodTypeAny, "passthrough"> | objectOutputType<...>
 import ComfyWorkflowJSON
 ```
+
+## kết quả hàm tạo COnstructor
+Hàm tạo dựa trên giá trị của location. Với location của global:
+```json
+{
+  "ancestorOrigins": {},
+  "href": "http://localhost:5173/",
+  "origin": "http://localhost:5173",
+  "protocol": "http:",
+  "host": "localhost:5173",
+  "hostname": "localhost",
+  "port": "5173",
+  "pathname": "/",
+  "search": "",
+  "hash": ""
+}
+```
+Giá trị location xuất phát từ truy cập của người dùng vào thanh URL của browser.
+Để biết địa chỉ này thì do Vite tạo ra với lệnh `npm run dev`.
+Muốn thay đổi thì thêm flag để thay đổi, ví dụ như: `npm run dev -- --host localhost --port 1234`
+Nếu người dùng nhập `http://localhost:1234/abc/1223/` thì location sẽ là:
+```json
+{
+  "ancestorOrigins": {},
+  "href": "http://localhost:1234/abc/1223/",
+  "origin": "http://localhost:1234",
+  "protocol": "http:",
+  "host": "localhost:1234",
+  "hostname": "localhost",
+  "port": "1234",
+  "pathname": "/abc/1223/",
+  "search": "",
+  "hash": ""
+}
+```
+`this.api_base` được xác định là `/abc/1223/` và trang web không hiển thị được. 
+Thậm chí với `pathname: /abc/` (có dấu `/`) thì `this.api_base` cho ra `/abc`.
+Tiếp tục xóa bớt `/` thì `pathname: /abc`. lÚc này sau khi split. `this.api_base =""` và mới vào được GUI.
+Tóm lại: truy cập `http://localhost:1234` hoặc `http://localhost:1234/abc` (không có `/`) thì vào được GUI. 
+Khi `this.api_base =""` rỗng thì các lệnh fetchApi được bắt đầu từ `"origin": "http://localhost:1234",` không có sub. 
+### Kết quả tạo api instance
+
+```json
+{
+  "api_host": "localhost:5173",
+  "api_base": "",
+  "initialClientId": "616993e5479941a5a4a6fa59f5af68a8",
+  "user": "Jang",
+  "socket": null,
+  "reportedUnknownMessageTypes": {},
+  "serverFeatureFlags": {}
+}
+```
+
+
+### #Socket
+
+````ts
+socket:
+WebSocket
+binaryType
+:
+"arraybuffer"
+bufferedAmount
+:
+0
+extensions
+:
+""
+onclose
+:
+null
+onerror
+:
+null
+onmessage
+:
+null
+onopen
+:
+null
+protocol
+:
+""
+readyState
+:
+0
+url
+:
+"ws://localhost:5173/ws"
+[[Prototype]]
+:
+WebSocket
+user
+:
+"Jang"```
+````

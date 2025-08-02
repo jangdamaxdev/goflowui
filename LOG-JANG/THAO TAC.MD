@@ -656,3 +656,7 @@ Xuất file cấu trúc gọn hơn, khả năng load lại như nhau
 Request URL: /api/settings/Comfy.ColorPalette
 với body `"dark"` hoặc `"light"`
 Status: 200 OK
+
+
+## Mỗi lần sửa Graph:
+
