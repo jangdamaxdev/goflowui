@@ -1,24 +1,90 @@
 # class ComfyApi extends EventTarget
 
-this.api_base là địa chỉ server backend, mặc định là localhost:8188.
-#registered = new Set()
+- #registered = new Set()
+- `api_host: string`. Là đại chỉ host mà instance này dùng để kết nối khi gọi method fetchApi. giá trị khi khởi tạo là `this.api_host = location.host`. Xem chi tiết ở phần hàm tạo [constructor](#constructor).
+- `api_base: string`. Là giá trị được tính trên `location.pathname` tức là phần phía sau địa chỉ `api_host` trên thanh truy cập browser. Giá trị cần nhận về trong app này cần là `""`. Để đảm bảo sẽ luôn gọi fectchApi từ gốc của Host. Được dùng để tạo ra string [apiURL](#apiurlroute-string-string), [fileURL](#fileurlroute-string-string) và [createSocket](#createSocket)
+- `initialClientId`: dùng để lưu thông tin từ `sessionStorage.getItem('clientId')`.
+- `user` lưu tên người dùng. dùng để tạo Headers.
+- `socket: WebSocket`. Object này dùng để tạo và quản lý socket tới Host. Giá trị chính thức được tạo trong method `createSocket`
+- `reportedUnknownMessageTypes`: chưa rõ, có thể dùng để báo cáo lỗi kiểu Message ??
+## getClientFeatureFlags(): `Record<string, unknown>`
+Lấy thông tin cấu hình từ file `\src\config\clientFeatureFlags.json` trả về dạng Object. Cú pháp `import objectName from 'path/tp/file.json` dùng để parse file JSON thành `objectName` tự động đem vào nơi dùng.
+## serverFeatureFlags: `Record<string, unknown> = {}`
+Object lưu `Feature flags received from the backend server`
+## authToken?: string
+The auth token for the comfy org account if the user is logged in.
+## apiKey?: string
+The API key for the comfy org account if the user logged in via API key.
+
+## constructor
+Hàm tạo dựa trên giá trị của location. Với location của global khi truy cập URL `http://localhost:5173/`
+```json
+{
+  "ancestorOrigins": {},
+  "href": "http://localhost:5173/",
+  "origin": "http://localhost:5173",
+  "protocol": "http:",
+  "host": "localhost:5173",
+  "hostname": "localhost",
+  "port": "5173",
+  "pathname": "/",
+  "search": "",
+  "hash": ""
+}
+```
+Giá trị location xuất phát từ truy cập của người dùng vào thanh URL của browser vao web app. Địa chỉ này do Vite tạo ra với lệnh `npm run dev`.
+Muốn thay đổi thì thêm flag để thay đổi, ví dụ như: `npm run dev -- --host localhost --port 1234`
+Nếu người dùng nhập `http://localhost:1234/abc/1223/` thì location sẽ là:
+```json
+{
+  "ancestorOrigins": {},
+  "href": "http://localhost:1234/abc/1223/",
+  "origin": "http://localhost:1234",
+  "protocol": "http:",
+  "host": "localhost:1234",
+  "hostname": "localhost",
+  "port": "1234",
+  "pathname": "/abc/1223/",
+  "search": "",
+  "hash": ""
+}
+```
+`this.api_base` được xác định là `/abc/1223/` và trang web không hiển thị được. 
+Thậm chí với `pathname: /abc/` (có dấu `/`) thì `this.api_base` cho ra `/abc`.
+Tiếp tục xóa bớt `/` thì `pathname: /abc`. lÚc này sau khi split. `this.api_base =""` và mới vào được GUI.
+Tóm lại: truy cập `http://localhost:1234` hoặc `http://localhost:1234/abc` (không có `/`) thì vào được GUI. 
+Khi `this.api_base =""` rỗng thì các lệnh fetchApi được bắt đầu từ `"origin": "http://localhost:1234",` không có sub. 
+### Kết quả tạo api instance
+
+```json
+{
+  "api_host": "localhost:5173",
+  "api_base": "",
+  "initialClientId": "616993e5479941a5a4a6fa59f5af68a8",
+  "user": "Jang",
+  "socket": null,
+  "reportedUnknownMessageTypes": {},
+  "serverFeatureFlags": {}
+}
+```
 
 ## internalURL(route: string): string
 
-Trả về địa chỉ `IPserver/internal + route`
+Trả về địa chỉ `/internal + route`
 
 ## apiURL(route: string): string
 
-Trả về địa chỉ: `IPserver/api + route`. Thường dùng bên trong lệnh gọi this.fetchAPI
+Trả về địa chỉ: `/api + route`. Thường dùng bên trong lệnh gọi this.fetchAPI
 
 ## fileURL(route: string): string
 
-Trả về địa chỉ: `IPserver + route`. Thường dùng cho lấy file thông qua Axios.
+Trả về địa chỉ: `"" + route`. Thường dùng cho lấy file thông qua Axios. do api_base là rỗng
 
 ## fetchApi(route: string, options?: RequestInit)
 
 - Tạo Object: Options, Headers rỗng nếu chưa có.
-- Nếu Options, Headers đã có thì thêm tên this.user vào (dùng cho trường hợp có tài khoản ComfyUI). Mặc định this.user là `'Jang'`
+- Nếu Options, Headers đã có thì thêm tên this.user vào (dùng cho trường hợp có tài khoản ComfyUI). Mặc định this.user là `'Jang'`.
+- Tiếp tục gọi fetch với `đường dẫn tương đối` (không có host), chỉ có dạng `/api + route`.
 
 ```ts
 fetchApi(route: string, options?: RequestInit) {
@@ -66,7 +132,7 @@ override addEventListener<TEvent extends keyof ApiEvents>(
 - Kiểu event trong `callback` phụ thuộc vào `type: TEvent`. Giúp IntelliSense và tự động bắt lỗi.
 - `options?: ...` Vẫn hỗ trợ đầy đủ capture, once, passive như chuẩn DOM.
 - `super.addEventListener(...)` Gọi API gốc của EventTarget.
-- `this.#registered.add(type)`Lưu lại sự kiện đã đăng ký. Có thể dùng sau này để quản lý/bỏ đăng ký.
+- `this.#registered.add(type)` Lưu lại sự kiện đã `add`. Có thể dùng sau này để quản lý/bỏ đăng ký.
 
 ## override removeEventListener
 
@@ -186,61 +252,9 @@ import ComfyApiWorkflow
 import ComfyWorkflowJSON
 ```
 
-## kết quả hàm tạo COnstructor
-Hàm tạo dựa trên giá trị của location. Với location của global:
-```json
-{
-  "ancestorOrigins": {},
-  "href": "http://localhost:5173/",
-  "origin": "http://localhost:5173",
-  "protocol": "http:",
-  "host": "localhost:5173",
-  "hostname": "localhost",
-  "port": "5173",
-  "pathname": "/",
-  "search": "",
-  "hash": ""
-}
-```
-Giá trị location xuất phát từ truy cập của người dùng vào thanh URL của browser.
-Để biết địa chỉ này thì do Vite tạo ra với lệnh `npm run dev`.
-Muốn thay đổi thì thêm flag để thay đổi, ví dụ như: `npm run dev -- --host localhost --port 1234`
-Nếu người dùng nhập `http://localhost:1234/abc/1223/` thì location sẽ là:
-```json
-{
-  "ancestorOrigins": {},
-  "href": "http://localhost:1234/abc/1223/",
-  "origin": "http://localhost:1234",
-  "protocol": "http:",
-  "host": "localhost:1234",
-  "hostname": "localhost",
-  "port": "1234",
-  "pathname": "/abc/1223/",
-  "search": "",
-  "hash": ""
-}
-```
-`this.api_base` được xác định là `/abc/1223/` và trang web không hiển thị được. 
-Thậm chí với `pathname: /abc/` (có dấu `/`) thì `this.api_base` cho ra `/abc`.
-Tiếp tục xóa bớt `/` thì `pathname: /abc`. lÚc này sau khi split. `this.api_base =""` và mới vào được GUI.
-Tóm lại: truy cập `http://localhost:1234` hoặc `http://localhost:1234/abc` (không có `/`) thì vào được GUI. 
-Khi `this.api_base =""` rỗng thì các lệnh fetchApi được bắt đầu từ `"origin": "http://localhost:1234",` không có sub. 
-### Kết quả tạo api instance
-
-```json
-{
-  "api_host": "localhost:5173",
-  "api_base": "",
-  "initialClientId": "616993e5479941a5a4a6fa59f5af68a8",
-  "user": "Jang",
-  "socket": null,
-  "reportedUnknownMessageTypes": {},
-  "serverFeatureFlags": {}
-}
-```
 
 
-### #Socket
+## #createSocket
 
 ````ts
 socket:

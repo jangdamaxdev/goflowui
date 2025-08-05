@@ -44,9 +44,7 @@ const router = createRouter({
           component: () => import('@/views/GraphView.vue'),
           beforeEnter: async (_to, _from, next) => {
             const userStore = useUserStore()
-            console.log('userStore trước khi initialize()', userStore)
             await userStore.initialize()
-            console.log('userStore sau khi initialize()', userStore)
             if (userStore.needsLogin) {
               next('/user-select')
             } else {

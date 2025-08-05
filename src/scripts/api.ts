@@ -296,14 +296,6 @@ export class ComfyApi extends EventTarget {
     this.api_host = location.host
     this.api_base = location.pathname.split('/').slice(0, -1).join('/')
     this.initialClientId = sessionStorage.getItem('clientId')
-    console.log(
-      'Running on api_host',
-      this.api_host,
-      'api_base',
-      this.api_base,
-      'initialClientId',
-      this.initialClientId
-    )
   }
 
   internalURL(route: string): string {
@@ -336,14 +328,6 @@ export class ComfyApi extends EventTarget {
     } else {
       options.headers['Comfy-User'] = this.user
     }
-    console.log(
-      'Route:',
-      route,
-      'with user: ',
-      this.user,
-      'option bao gồm headers: ',
-      options
-    )
     return fetch(this.apiURL(route), options)
   }
 
@@ -397,22 +381,19 @@ export class ComfyApi extends EventTarget {
    * Poll status  for colab and other things that don't support websockets.
    */
   #pollQueue() {
-    console.warn(
-      "Gọi pollQueue() với interval 1s, gọi this.fetchApi('/prompt')"
-    )
-    setInterval(async () => {
-      try {
-        const resp = await this.fetchApi('/prompt')
-        const status = (await resp.json()) as StatusWsMessageStatus
-        console.log(
-          'status bên trong pollQueue(), sau khi gọi this.fetchApi /prompt',
-          status
-        )
-        this.dispatchCustomEvent('status', status)
-      } catch (error) {
-        this.dispatchCustomEvent('status', null)
-      }
-    }, 1000)
+    // setInterval(async () => {
+    //   try {
+    //     const resp = await this.fetchApi('/prompt')
+    //     const status = (await resp.json()) as StatusWsMessageStatus
+    //     console.log(
+    //       'status bên trong pollQueue(), sau khi gọi this.fetchApi /prompt',
+    //       status
+    //     )
+    //     this.dispatchCustomEvent('status', status)
+    //   } catch (error) {
+    //     this.dispatchCustomEvent('status', null)
+    //   }
+    // }, 1000)
   }
 
   /**
